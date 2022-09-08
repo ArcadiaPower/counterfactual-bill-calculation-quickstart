@@ -43,8 +43,9 @@ export const createSwitchAccount = async (arcUtilityAccount) => {
     },
   };
 
-  // You can send either a POST or a PUT request to create an account. Using a PUT request allows an “upsert”, where the account will be added if it doesn’t exist yet, or updated if it does.
-  // You use the providerAccountId property as your own unique identifier. Why is that a good thing?
+  // You can send either a POST or a PUT request to create an account.
+  // Using a PUT request allows an “upsert”, where the account will be added if it doesn’t exist yet, or updated if it does.
+  // You use the providerAccountId property as your own unique identifier.
   const response = await genabilityApi.put("rest/v1/accounts", body, {
     headers: genabilityHeaders,
   });

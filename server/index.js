@@ -80,13 +80,13 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
       genabilityAccountId,
       arcUtilityStatement
     );
-    // Step 4: Create/Update Solar Usage Profile
+    // Step 3: Create/Update Solar Usage Profile
     const solarProductionProfile = await createProductionProfileSolarData(genabilityAccountId);
 
-    // Step 5: Calculate Costs
-    const currentCost = await calculateCurrentBillCost(arcUtilityStatement, genabilityAccountId);
+    // Step 4: Calculate Costs
+    const currentCost = await calculateCurrentBillCost(arcUtilityStatement);
 
-    // Step 6: calculate cost without solar
+    // Step 5: Calculate cost without solar
     const currentCostWithoutSolar = await calculateCurrentBillCostWithoutSolar(arcUtilityStatement, solarProductionProfile)
 
     res.json({
