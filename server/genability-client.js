@@ -54,6 +54,8 @@ export const createSwitchAccount = async (arcUtilityAccount) => {
 };
 
 const calculateServiceEndDate = (serviceEndDate, serviceWindowInclusiveOfEndDate) => {
+  // Different utilities treat the service_end_date as either (1) exclusive or (2) inclusive of the services on the bill.
+  // While Arc currently handles these edge cases, we need to be aware of the differences when pairing calculations with Genability features.
   if (serviceWindowInclusiveOfEndDate) {
     return dayjs(serviceEndDate).add(1, "day").format("YYYY-MM-DD")
   }
@@ -163,7 +165,9 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
       }
     },
 
-    // Can arbitrarily set the start date for mock solar production data
+    // Can arbitrarily set the start date for mock solar production data.
+    // If you're not seeing a difference between the bill with solar production data
+    // and the bill witout solar production data, it may be because this date below is AFTER the statement's end date.
     readingData: getAndTransform8760Data("2022-01-01T00:00-0700")
   }
 
