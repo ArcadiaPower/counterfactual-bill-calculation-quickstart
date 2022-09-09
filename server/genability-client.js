@@ -53,6 +53,13 @@ export const createSwitchAccount = async (arcUtilityAccount) => {
   return response.data.results[0];
 };
 
+const calculateServiceEndDate = (serviceEndDate, serviceWindowInclusiveOfEndDate) => {
+  if (serviceWindowInclusiveOfEndDate) {
+    return dayjs(serviceEndDate).add(1, "day").format("YYYY-MM-DD")
+  }
+  return serviceEndDate;
+}
+
 // We are updating the tariff collection everytime we try to calculate a counterfactual bill.
 // https://www.switchsolar.io/api-reference/account-api/account-tariff/
 export const createTariff = async (
@@ -155,6 +162,8 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
         dataValue: "5"
       }
     },
+
+    // Can arbitrarily set the start date for mock solar production data
     readingData: getAndTransform8760Data("2022-01-01T00:00-0700")
   }
 
@@ -168,7 +177,7 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
 export const calculateCurrentBillCost = async (arcUtilityStatement) => {
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
-    toDateTime: arcUtilityStatement.serviceEndDate, //TODO: this should be inclusive of the end date for MOST utilities (add +1.day).
+    toDateTime: calculateServiceEndDate(arcUtilityStatement.serviceEndDate, arcUtilityStatement.serviceWindowInclusiveOfEndDate),
     billingPeriod: true,
     minimums: false,
     groupBy: "MONTH",
@@ -189,7 +198,7 @@ export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, 
 
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
-    toDateTime: arcUtilityStatement.serviceEndDate, //TODO: this should be inclusive of the end date for MOST utilities (add +1.day).
+    toDateTime: calculateServiceEndDate(arcUtilityStatement.serviceEndDate, arcUtilityStatement.serviceWindowInclusiveOfEndDate),
     billingPeriod: true,
     minimums: false,
     groupBy: "MONTH",
