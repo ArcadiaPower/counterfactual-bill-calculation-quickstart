@@ -49,7 +49,7 @@ app.post("/create_genability_account", async (req, res, next) => {
     res.json({ genabilityAccount });
     res.status(200);
   } catch (error) {
-      next(error)
+    next(error)
   }
 });
 
@@ -73,7 +73,7 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     const arcUtilityStatement = await getUtilityStatement(utilityStatementId);
 
     // Step 1: Post Tariff from current UtilityStatement. The genabilityAccountId is set as a Global variable.
-    const tariff = await createTariff(genabilityAccountId, arcUtilityStatement);
+    createTariff(genabilityAccountId, arcUtilityStatement);
 
     // Step 2: Update Interval Data Usage Profile
     await createUsageProfileIntervalData(
