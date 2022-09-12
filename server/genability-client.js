@@ -3,16 +3,16 @@ import dotenv from "dotenv";
 import dayjs from "dayjs";
 import { env } from "process";
 import { getIntervalData } from "./arc-client.js";
+import { readFile } from 'fs/promises';
+dotenv.config();
 
 // This is mock solar production data and should be substituted
 // for real solar production data in a a production implmentation.
-import { readFile } from 'fs/promises';
 const mock8760Data = JSON.parse(
   await readFile(
     new URL('./assets/mock-8760-solar-profile.json', import.meta.url)
   )
 );
-dotenv.config();
 
 const genabilityApi = axios.create({
   baseURL: "https://api.genability.com",
