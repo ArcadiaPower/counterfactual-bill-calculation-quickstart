@@ -77,7 +77,8 @@ export const getIntervalData = async (
   arcUtilityAccountId
 ) => {
   const accessToken = await getArcAccessToken();
-  // TODO: query params for utility meter
+
+  // In the future this endpoint will support querying by utility meter
   const response = await arcadiaApi.get(
     `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_account_id=${arcUtilityAccountId}`,
     {
