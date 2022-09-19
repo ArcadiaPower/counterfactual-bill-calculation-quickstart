@@ -18,7 +18,11 @@ const getArcAccessToken = async () => {
   const tokenResponse = await arcadiaApi.post("/auth/access_token", {
     client_id: env["ARC_API_CLIENT_ID"],
     client_secret: env["ARC_API_CLIENT_SECRET"],
-  });
+  },
+    {
+      headers: { "Arc-Version": "2021-11-17" },
+    }
+  );
 
   return tokenResponse.data.accessToken;
 };
