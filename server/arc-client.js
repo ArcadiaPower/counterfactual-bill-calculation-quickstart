@@ -55,7 +55,7 @@ export const getUtilityAccount = async (utilityAccountId) => {
 export const getUtilityStatements = async (utilityAccountId) => {
   const accessToken = await getArcAccessToken();
   const response = await arcadiaApi.get(
-    `/plug/utility_statements?utility_account_id=${utilityAccountId}&order=asc`,
+    `/plug/utility_statements?utility_account_id=${utilityAccountId}&limit=12&order=asc`,
     {
       headers: setArcHeaders(accessToken),
     }
