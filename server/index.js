@@ -12,7 +12,8 @@ import {
   createUsageProfileIntervalData,
   createProductionProfileSolarData,
   calculateCurrentBillCost,
-  calculateCurrentBillCostWithoutSolar
+  calculateCurrentBillCostWithoutSolar,
+  deleteExistingGenabilityProfiles
 } from "./genability-client.js";
 dotenv.config();
 
@@ -45,6 +46,9 @@ app.post("/create_genability_account", async (req, res, next) => {
     const arcUtilityAccount = await getUtilityAccount(utilityAccountId);
     const genabilityAccount = await createSwitchAccount(arcUtilityAccount);
     genabilityAccountId = genabilityAccount.accountId;
+
+    // allows implementation to generate usage profiles with each calculation
+    await deleteExistingGenabilityProfiles(genabilityAccountId)
 
     res.json({ genabilityAccount });
     res.status(200);

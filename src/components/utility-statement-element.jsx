@@ -37,6 +37,7 @@ const UtilityStatementElement = ({ arcUtilityStatement }) => {
   const closeModal = () => {
     setOpenModal(false)
     setError(null)
+    setCounterFactualResults(null)
   }
 
   return (
