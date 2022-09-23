@@ -92,6 +92,20 @@ export const createTariff = async (
   return result
 };
 
+export const deleteExistingGenabilityProfiles = async (genabilityAccountId) => {
+  const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
+  if (existingUsageProfiles.data.count > 0) {
+    for (const usageProfile of existingUsageProfiles.data.results) {
+      await genabilityApi.delete(`rest/v1/profiles/${usageProfile.profileId}`, { headers: genabilityHeaders })
+    }
+  }
+}
+
+export const getExistingGenabilityProfiles = async (genabilityAccountId) => {
+  const existingUsageProfiles = await genabilityApi.get(`rest/v1/profiles?accountId=${genabilityAccountId}`, { headers: genabilityHeaders });
+  return existingUsageProfiles;
+}
+
 export const createUsageProfileIntervalData = async (
   genabilityAccountId,
   arcUtilityStatement
@@ -120,7 +134,7 @@ export const createUsageProfileIntervalData = async (
     readingData: intervalInfoData,
   };
 
-  genabilityApi.put(`rest/v1/profiles`, body, {
+  await genabilityApi.put(`rest/v1/profiles`, body, {
     headers: genabilityHeaders,
   });
 };
