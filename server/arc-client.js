@@ -48,7 +48,7 @@ export const getUtilityAccount = async (utilityAccountId) => {
       error.response.data.error = "Could not find this utility account, or utility account does not belong to your tenant in this environment"
       error.response.status = 400
     }
-    throw error;
+    throw error.response;
   }
 };
 
@@ -62,11 +62,9 @@ export const getUtilityMeters = async (utilityAccountId) => {
       }
     );
     return response.data;
-  } catch (e) {
-    console.log(e.response)
-    throw e
+  } catch (error) {
+    throw error.response
   }
-
 }
 
 export const getUtilityStatements = async (utilityAccountId) => {

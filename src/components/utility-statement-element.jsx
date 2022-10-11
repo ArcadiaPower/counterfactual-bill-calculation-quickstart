@@ -25,7 +25,7 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
   const [error, setError] = useState()
   const [selectedMeterId, setSelectedMeterId] = useState(meters[0].id)
 
-  const handleChange = (e) => {
+  const handleMeterSelection = (e) => {
     setSelectedMeterId(e.target.value)
   }
 
@@ -49,7 +49,7 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
     <div>
       <JSONPretty id="json-pretty" data={arcUtilityStatement}></JSONPretty>
       <div>Calculate Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}
-      <select defaultValue={meters[0].id} value={selectedMeterId} onChange={handleChange}>
+      <select defaultValue={meters[0].id} value={selectedMeterId} onChange={handleMeterSelection}>
           {meters.map((meter) => (
             <option key={meter.id} value={meter.id}>Meter Id: {meter.id}</option>
           ))}

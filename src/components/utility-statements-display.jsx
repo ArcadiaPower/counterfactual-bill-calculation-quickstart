@@ -5,7 +5,7 @@ import { string } from 'prop-types';
 
 const UtilityStatementsDisplay = ({arcUtilityAccountId, setError, error, meters}) => {
   const [arcUtilityStatements, setArcUtilityStatements] = useState()
-  console.log('meterz', meters)
+
   const setUtilityStatements = async () => {
     try{
       const result = await fetchUtilityStatements(arcUtilityAccountId);
