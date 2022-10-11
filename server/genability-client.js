@@ -111,6 +111,9 @@ export const createUsageProfileIntervalData = async (
   arcUtilityStatement,
   meterId
 ) => {
+
+  await deleteExistingGenabilityProfiles(genabilityAccountId);
+
   const intervalData = await getIntervalData(
     arcUtilityStatement.id,
     meterId
