@@ -8,13 +8,19 @@ import Modal from 'react-modal';
 
 const containerStyle = {
   display: "flex",
-  gap: '20px',
+  gap: "20px",
 }
 
 const titleStyle = {
   display: "flex",
   justifyContent: "space-between",
-  alignItems: 'center'
+  alignItems: "center"
+}
+
+const counterFactualHeaderStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "5px"
 }
 
 Modal.setAppElement(document.getElementById('root'));
@@ -48,10 +54,13 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
   return (
     <div>
       <JSONPretty id="json-pretty" data={arcUtilityStatement}></JSONPretty>
-      <div>Calculate Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}
-      <select defaultValue={meters[0].id} value={selectedMeterId} onChange={handleMeterSelection}>
+      <div style={counterFactualHeaderStyle}>
+        <div>
+          Calculate Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id} using meter ID:
+        </div>
+        <select value={selectedMeterId} onChange={handleMeterSelection}>
           {meters.map((meter) => (
-            <option key={meter.id} value={meter.id}>Meter Id: {meter.id}</option>
+            <option key={meter.id} value={meter.id}>{meter.id}</option>
           ))}
         </select>
         <button onClick={() => calculate(arcUtilityStatement.id)}>
@@ -60,7 +69,7 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
       </div>
       <Modal isOpen={openModal} appElement={document.getElementById('app')}>
         <div style={titleStyle}>
-          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}</h3>
+          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}, Meter Id: ${selectedMeterId}</h3>
           <button onClick={closeModal}>close</button>
         </div>
         <>
@@ -69,7 +78,7 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
               <CounterfactualResults title="Current Cost" results={counterFactualResults.currentCost}></CounterfactualResults>
               <CounterfactualResults title="Current Cost Without Solar" results={counterFactualResults.currentCostWithoutSolar}></CounterfactualResults>
             </div>
-              : error ? <ErrorMessage error={error}/>
+              : error ? <ErrorMessage error={error} />
                 : <p>Loading...</p>
           }
         </>
