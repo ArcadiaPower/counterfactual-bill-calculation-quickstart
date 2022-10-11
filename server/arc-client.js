@@ -52,6 +52,23 @@ export const getUtilityAccount = async (utilityAccountId) => {
   }
 };
 
+export const getUtilityMeters = async (utilityAccountId) => {
+  const accessToken = await getArcAccessToken();
+  try {
+    const response = await arcadiaApi.get(
+      `/utility_meters?utility_account_id=${utilityAccountId}&service_types=electric`,
+      {
+        headers: setArcHeaders(accessToken),
+      }
+    );
+    return response.data;
+  } catch (e) {
+    console.log(e.response)
+    throw e
+  }
+
+}
+
 export const getUtilityStatements = async (utilityAccountId) => {
   const accessToken = await getArcAccessToken();
   const response = await arcadiaApi.get(
@@ -78,13 +95,12 @@ export const getUtilityStatement = async (utilityStatementId) => {
 
 export const getIntervalData = async (
   arcUtilityStatementId,
-  arcUtilityAccountId
+  meterId
 ) => {
   const accessToken = await getArcAccessToken();
 
-  // In the future this endpoint will support querying by utility meter
   const response = await arcadiaApi.get(
-    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_account_id=${arcUtilityAccountId}`,
+    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_meter_id=${meterId}`,
     {
       headers: setArcHeaders(accessToken),
     }

@@ -5,6 +5,7 @@ import {
   getUtilityAccount,
   getUtilityStatements,
   getUtilityStatement,
+  getUtilityMeters
 } from "./arc-client.js";
 import {
   createSwitchAccount,
@@ -45,6 +46,8 @@ app.post("/create_genability_account", async (req, res, next) => {
   try {
     const arcUtilityAccount = await getUtilityAccount(utilityAccountId);
     const genabilityAccount = await createSwitchAccount(arcUtilityAccount);
+    const utilityMeters = await getUtilityMeters(utilityAccountId);
+    genabilityAccount.utilityMeters = utilityMeters.data;
     genabilityAccountId = genabilityAccount.accountId;
 
     // allows implementation to generate usage profiles with each calculation
@@ -71,7 +74,7 @@ app.get("/fetch_utility_statements", async (req, res, next) => {
 });
 
 app.post("/calculate_counterfactual_bill", async (req, res, next) => {
-  const { utilityStatementId } = req.body;
+  const { utilityStatementId, meterId } = req.body;
 
   try {
     const arcUtilityStatement = await getUtilityStatement(utilityStatementId);
@@ -82,7 +85,8 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     // Step 2: Update Interval Data Usage Profile
     await createUsageProfileIntervalData(
       genabilityAccountId,
-      arcUtilityStatement
+      arcUtilityStatement,
+      meterId
     );
     // Step 3: Create/Update Solar Usage Profile
     const solarProductionProfile = await createProductionProfileSolarData(genabilityAccountId);
