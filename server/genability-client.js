@@ -108,11 +108,13 @@ export const getExistingGenabilityProfiles = async (genabilityAccountId) => {
 
 export const createUsageProfileIntervalData = async (
   genabilityAccountId,
-  arcUtilityStatement
+  arcUtilityStatement,
+  meterId
 ) => {
+
   const intervalData = await getIntervalData(
     arcUtilityStatement.id,
-    arcUtilityStatement.utilityAccountId
+    meterId
   );
 
   const intervalInfoData = intervalData.map((interval) => {

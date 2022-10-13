@@ -48,9 +48,24 @@ export const getUtilityAccount = async (utilityAccountId) => {
       error.response.data.error = "Could not find this utility account, or utility account does not belong to your tenant in this environment"
       error.response.status = 400
     }
-    throw error;
+    throw error.response;
   }
 };
+
+export const getUtilityMeters = async (utilityAccountId) => {
+  const accessToken = await getArcAccessToken();
+  try {
+    const response = await arcadiaApi.get(
+      `/utility_meters?utility_account_id=${utilityAccountId}&service_types=electric`,
+      {
+        headers: setArcHeaders(accessToken),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response
+  }
+}
 
 export const getUtilityStatements = async (utilityAccountId) => {
   const accessToken = await getArcAccessToken();
@@ -78,13 +93,12 @@ export const getUtilityStatement = async (utilityStatementId) => {
 
 export const getIntervalData = async (
   arcUtilityStatementId,
-  arcUtilityAccountId
+  meterId
 ) => {
   const accessToken = await getArcAccessToken();
 
-  // In the future this endpoint will support querying by utility meter
   const response = await arcadiaApi.get(
-    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_account_id=${arcUtilityAccountId}`,
+    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_meter_id=${meterId}`,
     {
       headers: setArcHeaders(accessToken),
     }

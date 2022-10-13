@@ -5,6 +5,7 @@ import {
   getUtilityAccount,
   getUtilityStatements,
   getUtilityStatement,
+  getUtilityMeters
 } from "./arc-client.js";
 import {
   createSwitchAccount,
@@ -45,10 +46,9 @@ app.post("/create_genability_account", async (req, res, next) => {
   try {
     const arcUtilityAccount = await getUtilityAccount(utilityAccountId);
     const genabilityAccount = await createSwitchAccount(arcUtilityAccount);
+    const utilityMeters = await getUtilityMeters(utilityAccountId);
+    genabilityAccount.utilityMeters = utilityMeters.data;
     genabilityAccountId = genabilityAccount.accountId;
-
-    // allows implementation to generate usage profiles with each calculation
-    await deleteExistingGenabilityProfiles(genabilityAccountId)
 
     res.json({ genabilityAccount });
     res.status(200);
@@ -71,7 +71,7 @@ app.get("/fetch_utility_statements", async (req, res, next) => {
 });
 
 app.post("/calculate_counterfactual_bill", async (req, res, next) => {
-  const { utilityStatementId } = req.body;
+  const { utilityStatementId, meterId } = req.body;
 
   try {
     const arcUtilityStatement = await getUtilityStatement(utilityStatementId);
@@ -79,10 +79,15 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     // Step 1: Post Tariff from current UtilityStatement. The genabilityAccountId is set as a Global variable.
     await createTariff(genabilityAccountId, arcUtilityStatement);
 
+    // Step 1a: For the purposes of this reference implementation, we delete existing genability
+    // profiles to produce a fresh calculation each time
+    await deleteExistingGenabilityProfiles(genabilityAccountId)
+
     // Step 2: Update Interval Data Usage Profile
     await createUsageProfileIntervalData(
       genabilityAccountId,
-      arcUtilityStatement
+      arcUtilityStatement,
+      meterId
     );
     // Step 3: Create/Update Solar Usage Profile
     const solarProductionProfile = await createProductionProfileSolarData(genabilityAccountId);
