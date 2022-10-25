@@ -97,7 +97,9 @@ export const getIntervalData = async (
   meterId
 ) => {
   const accessToken = await getArcAccessToken();
-  const path = meterId ? `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_meter_id=${meterId}` : `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_account_id=${arcUtilityAccountId}`
+  const path = meterId ?
+    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_meter_id=${meterId}` :
+    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_account_id=${arcUtilityAccountId}`;
 
   const response = await arcadiaApi.get(
     path,

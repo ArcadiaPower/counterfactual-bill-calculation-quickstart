@@ -60,14 +60,24 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
       <Modal isOpen={openModal} appElement={document.getElementById('app')}>
         <div style={titleStyle}>
           <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}, Meter Id: </h3>
+
           <button onClick={closeModal}>close</button>
         </div>
         <>
           {
-            counterFactualResults ? <div style={containerStyle}>
-              <CounterfactualResults title="Current Cost" results={counterFactualResults.currentCost}></CounterfactualResults>
-              <CounterfactualResults title="Current Cost Without Solar" results={counterFactualResults.currentCostWithoutSolar}></CounterfactualResults>
-            </div>
+            counterFactualResults ?
+              (
+                <>
+                  {
+                    counterFactualResults.metersUsedInCalculation.length &&
+                    <div>Meter IDs used in calculation: {counterFactualResults.metersUsedInCalculation.map(meter => meter.id).join(', ')}</div>
+                  }
+                  <div style={containerStyle}>
+                    <CounterfactualResults title="Current Cost" results={counterFactualResults.currentCost}></CounterfactualResults>
+                    <CounterfactualResults title="Current Cost Without Solar" results={counterFactualResults.currentCostWithoutSolar}></CounterfactualResults>
+                  </div>
+                </>
+              )
               : error ? <ErrorMessage error={error} />
                 : <p>Loading...</p>
           }

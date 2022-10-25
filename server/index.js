@@ -81,7 +81,7 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     await deleteExistingGenabilityProfiles(genabilityAccountId)
 
     // Step 2: Create Interval Data Usage Profiles
-    await createUsageProfiles(arcUtilityStatement, genabilityAccountId)
+    const metersUsedInCalculation = await createUsageProfiles(arcUtilityStatement, genabilityAccountId)
 
     // Step 3: Create/Update Solar Usage Profile
     const solarProductionProfile = await createProductionProfileSolarData(genabilityAccountId);
@@ -95,6 +95,7 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     res.json({
       currentCost: currentCost.results[0],
       currentCostWithoutSolar: currentCostWithoutSolar.results[0],
+      metersUsedInCalculation: metersUsedInCalculation
     });
     res.status(200);
   } catch (error) {

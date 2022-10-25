@@ -128,6 +128,7 @@ export const createUsageProfiles = async (arcUtilityStatement, genabilityAccount
       null
     );
   }
+  return meters;
 }
 
 export const createUsageProfileIntervalData = async (
@@ -142,7 +143,7 @@ export const createUsageProfileIntervalData = async (
     meterId
   );
 
-  const intervalInfoData = intervalData.map((interval) => {
+  const transformedIntervalData = intervalData.map((interval) => {
     return {
       fromDateTime: interval.startTime,
       toDateTime: interval.endTime,
@@ -159,7 +160,7 @@ export const createUsageProfileIntervalData = async (
     isDefault: false,
     serviceTypes: "ELECTRICITY",
     sourceId: "ReadingEntry",
-    readingData: intervalInfoData,
+    readingData: transformedIntervalData,
   };
 
   return await genabilityApi.put(`rest/v1/profiles`, body, {
