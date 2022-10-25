@@ -2,7 +2,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import dayjs from "dayjs";
 import { env } from "process";
-import { getIntervalData } from "./arc-client.js";
+import { getIntervalData, getUtilityMeters } from "./arc-client.js";
 import { readFile } from 'fs/promises';
 dotenv.config();
 
@@ -104,6 +104,30 @@ export const deleteExistingGenabilityProfiles = async (genabilityAccountId) => {
 export const getExistingGenabilityProfiles = async (genabilityAccountId) => {
   const existingUsageProfiles = await genabilityApi.get(`rest/v1/profiles?accountId=${genabilityAccountId}`, { headers: genabilityHeaders });
   return existingUsageProfiles;
+}
+
+export const createUsageProfiles = async (arcUtilityStatement, genabilityAccountId) => {
+  const meters = await getUtilityMeters(arcUtilityStatement.utilityAccountId)
+  if (meters.length) {
+    // If there are multiple meters associated with the statement period,
+    // we create a usage profile for each meter. All usage profiles will
+    // be used when we run calculations.
+    for (let meter of meters) {
+      await createUsageProfileIntervalData(
+        genabilityAccountId,
+        arcUtilityStatement,
+        meter.id
+      );
+    }
+  } else {
+    // If an account does not have meter-level data,
+    // we attempt to get interval data at the statement level.
+    await createUsageProfileIntervalData(
+      genabilityAccountId,
+      arcUtilityStatement,
+      null
+    );
+  }
 }
 
 export const createUsageProfileIntervalData = async (

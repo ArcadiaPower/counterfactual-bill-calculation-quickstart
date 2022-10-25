@@ -4,13 +4,12 @@ import dotenv from "dotenv";
 import {
   getUtilityAccount,
   getUtilityStatements,
-  getUtilityStatement,
-  getUtilityMeters
+  getUtilityStatement
 } from "./arc-client.js";
 import {
   createSwitchAccount,
   createTariff,
-  createUsageProfileIntervalData,
+  createUsageProfiles,
   createProductionProfileSolarData,
   calculateCurrentBillCost,
   calculateCurrentBillCostWithoutSolar,
@@ -46,8 +45,6 @@ app.post("/create_genability_account", async (req, res, next) => {
   try {
     const arcUtilityAccount = await getUtilityAccount(utilityAccountId);
     const genabilityAccount = await createSwitchAccount(arcUtilityAccount);
-    const utilityMeters = await getUtilityMeters(utilityAccountId);
-    genabilityAccount.utilityMeters = utilityMeters.data;
     genabilityAccountId = genabilityAccount.accountId;
 
     res.json({ genabilityAccount });
@@ -83,24 +80,8 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     // profiles to produce a fresh calculation each time
     await deleteExistingGenabilityProfiles(genabilityAccountId)
 
-    // Step 2: Update Interval Data Usage Profile
-    const meters = await getUtilityMeters(arcUtilityStatement.utilityAccountId)
-    // make usage profile for each meter
-    if (meters.length) {
-      for (let meter of meters) {
-        const usageProfile = await createUsageProfileIntervalData(
-          genabilityAccountId,
-          arcUtilityStatement,
-          meter.id
-        );
-      }
-    } else {
-      const usageProfile = await createUsageProfileIntervalData(
-        genabilityAccountId,
-        arcUtilityStatement,
-        null
-      );
-    }
+    // Step 2: Create Interval Data Usage Profiles
+    await createUsageProfiles(arcUtilityStatement, genabilityAccountId)
 
     // Step 3: Create/Update Solar Usage Profile
     const solarProductionProfile = await createProductionProfileSolarData(genabilityAccountId);
