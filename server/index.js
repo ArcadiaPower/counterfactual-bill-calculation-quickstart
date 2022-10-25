@@ -71,7 +71,7 @@ app.get("/fetch_utility_statements", async (req, res, next) => {
 });
 
 app.post("/calculate_counterfactual_bill", async (req, res, next) => {
-  const { utilityStatementId, meterId } = req.body;
+  const { utilityStatementId } = req.body;
 
   try {
     const arcUtilityStatement = await getUtilityStatement(utilityStatementId);
@@ -84,19 +84,32 @@ app.post("/calculate_counterfactual_bill", async (req, res, next) => {
     await deleteExistingGenabilityProfiles(genabilityAccountId)
 
     // Step 2: Update Interval Data Usage Profile
-    await createUsageProfileIntervalData(
-      genabilityAccountId,
-      arcUtilityStatement,
-      meterId
-    );
+    const meters = await getUtilityMeters(arcUtilityStatement.utilityAccountId)
+    // make usage profile for each meter
+    if (meters.length) {
+      for (let meter of meters) {
+        const usageProfile = await createUsageProfileIntervalData(
+          genabilityAccountId,
+          arcUtilityStatement,
+          meter.id
+        );
+      }
+    } else {
+      const usageProfile = await createUsageProfileIntervalData(
+        genabilityAccountId,
+        arcUtilityStatement,
+        null
+      );
+    }
+
     // Step 3: Create/Update Solar Usage Profile
     const solarProductionProfile = await createProductionProfileSolarData(genabilityAccountId);
 
     // Step 4: Calculate Costs
-    const currentCost = await calculateCurrentBillCost(arcUtilityStatement);
+    const currentCost = await calculateCurrentBillCost(arcUtilityStatement, genabilityAccountId);
 
     // Step 5: Calculate cost without solar
-    const currentCostWithoutSolar = await calculateCurrentBillCostWithoutSolar(arcUtilityStatement, solarProductionProfile)
+    const currentCostWithoutSolar = await calculateCurrentBillCostWithoutSolar(arcUtilityStatement, solarProductionProfile, genabilityAccountId)
 
     res.json({
       currentCost: currentCost.results[0],

@@ -114,6 +114,7 @@ export const createUsageProfileIntervalData = async (
 
   const intervalData = await getIntervalData(
     arcUtilityStatement.id,
+    arcUtilityStatement.utilityAccountId,
     meterId
   );
 
@@ -128,15 +129,16 @@ export const createUsageProfileIntervalData = async (
 
   const body = {
     accountId: genabilityAccountId,
-    profileName: "Interval Data",
-    description: `Usage Profile using Interval Data for Utility Account ${arcUtilityStatement.utilityAccountId}`,
-    isDefault: true,
+    providerProfileId: `ELECTRICITY_USAGE_UA_${arcUtilityStatement.utilityAccountId}${meterId ? "_METER_" + meterId : '_WITHOUT_METER'}`,
+    profileName: `Interval Data for ${meterId ? 'meter ' + meterId : 'utility_account ' + arcUtilityStatement.utilityAccountId}`,
+    description: `Usage Profile using Interval Data for Utility Account ${arcUtilityStatement.utilityAccountId}${meterId ? " - meter: " + meterId : ""}`,
+    isDefault: false,
     serviceTypes: "ELECTRICITY",
     sourceId: "ReadingEntry",
     readingData: intervalInfoData,
   };
 
-  await genabilityApi.put(`rest/v1/profiles`, body, {
+  return await genabilityApi.put(`rest/v1/profiles`, body, {
     headers: genabilityHeaders,
   });
 };
@@ -194,14 +196,25 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
   return response.data
 };
 
-export const calculateCurrentBillCost = async (arcUtilityStatement) => {
+export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAccountId) => {
+  const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
+  let electricNonDefaultProfiles = existingUsageProfiles.data.results.filter(usageProfile => usageProfile.serviceTypes === 'ELECTRICITY' && usageProfile.isDefault === false)
+  electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
+    return {
+      keyName: 'profileId',
+      dataValue: usageProfile.profileId,
+      operator: '+'
+    }
+  })
+
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
     toDateTime: calculateServiceEndDate(arcUtilityStatement.serviceEndDate, arcUtilityStatement.serviceWindowInclusiveOfEndDate),
     billingPeriod: true,
     minimums: false,
     groupBy: "MONTH",
-    detailLevel: "CHARGE_TYPE_AND_TOU"
+    detailLevel: "CHARGE_TYPE_AND_TOU",
+    propertyInputs: electricNonDefaultProfiles
   };
   const response = await genabilityApi.post(
     `rest/v1/accounts/pid/${arcUtilityStatement.utilityAccountId}/calculate/`,
@@ -213,8 +226,19 @@ export const calculateCurrentBillCost = async (arcUtilityStatement) => {
   return response.data
 };
 
-export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, solarProductionProfile) => {
+export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, solarProductionProfile, genabilityAccountId) => {
   // https://www.switchsolar.io/tutorials/actuals/electricity-savings/
+
+  const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
+
+  let electricNonDefaultProfiles = existingUsageProfiles.data.results.filter(usageProfile => usageProfile.serviceTypes === 'ELECTRICITY' && usageProfile.isDefault === false)
+  electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
+    return {
+      keyName: 'profileId',
+      dataValue: usageProfile.profileId,
+      operator: '+'
+    }
+  })
 
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
@@ -228,7 +252,8 @@ export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, 
         keyName: "profileId",
         dataValue: solarProductionProfile.results[0].profileId,
         operator: "+"
-      }
+      },
+      ...electricNonDefaultProfiles
     ]
   }
 

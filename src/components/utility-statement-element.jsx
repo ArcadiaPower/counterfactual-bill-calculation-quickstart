@@ -29,16 +29,11 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
   const [openModal, setOpenModal] = useState(false)
   const [counterFactualResults, setCounterFactualResults] = useState()
   const [error, setError] = useState()
-  const [selectedMeterId, setSelectedMeterId] = useState(meters[0].id)
-
-  const handleMeterSelection = (e) => {
-    setSelectedMeterId(e.target.value)
-  }
 
   const calculate = async (arcUtilityStatementId) => {
     try {
       setOpenModal(true)
-      const result = await calculateCounterfactualBill(arcUtilityStatementId, selectedMeterId)
+      const result = await calculateCounterfactualBill(arcUtilityStatementId)
       setCounterFactualResults(result)
     } catch (error) {
       setError(error.response)
@@ -58,18 +53,13 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
         <div>
           Calculate Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id} using meter ID:
         </div>
-        <select value={selectedMeterId} onChange={handleMeterSelection}>
-          {meters.map((meter) => (
-            <option key={meter.id} value={meter.id}>{meter.id}</option>
-          ))}
-        </select>
         <button onClick={() => calculate(arcUtilityStatement.id)}>
           Calculate!
         </button>
       </div>
       <Modal isOpen={openModal} appElement={document.getElementById('app')}>
         <div style={titleStyle}>
-          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}, Meter Id: {selectedMeterId}</h3>
+          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}, Meter Id: </h3>
           <button onClick={closeModal}>close</button>
         </div>
         <>

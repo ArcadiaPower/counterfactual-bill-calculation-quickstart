@@ -52,16 +52,16 @@ export const getUtilityAccount = async (utilityAccountId) => {
   }
 };
 
-export const getUtilityMeters = async (utilityAccountId) => {
+export const getUtilityMeters = async (arcUtilityAccountId) => {
   const accessToken = await getArcAccessToken();
   try {
     const response = await arcadiaApi.get(
-      `/utility_meters?utility_account_id=${utilityAccountId}&service_types=electric`,
+      `/utility_meters?utility_account_id=${arcUtilityAccountId}&service_types=electric`,
       {
         headers: setArcHeaders(accessToken),
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     throw error.response
   }
@@ -93,12 +93,14 @@ export const getUtilityStatement = async (utilityStatementId) => {
 
 export const getIntervalData = async (
   arcUtilityStatementId,
+  arcUtilityAccountId,
   meterId
 ) => {
   const accessToken = await getArcAccessToken();
+  const path = meterId ? `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_meter_id=${meterId}` : `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_account_id=${arcUtilityAccountId}`
 
   const response = await arcadiaApi.get(
-    `/plug/utility_intervals?utility_statement_id=${arcUtilityStatementId}&utility_meter_id=${meterId}`,
+    path,
     {
       headers: setArcHeaders(accessToken),
     }
