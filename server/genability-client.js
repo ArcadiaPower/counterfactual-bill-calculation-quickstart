@@ -222,8 +222,7 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
 };
 
 export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAccountId) => {
-  const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
-  let electricNonDefaultProfiles = existingUsageProfiles.data.results.filter(usageProfile => usageProfile.serviceTypes === 'ELECTRICITY' && usageProfile.isDefault === false)
+  let electricNonDefaultProfiles = await getExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
   electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
     return {
       keyName: 'profileId',
@@ -251,12 +250,20 @@ export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAc
   return response.data
 };
 
+export const getExistingNonDefaultProfiles = async (genabilityAccountId, serviceType) => {
+  // https://www.switchsolar.io/api-reference/account-api/usage-profile/#examples
+  // The first usage profile with a serviceType of 'ELECTRICITY' will automatically be set
+  // to isDefault: true, which means it will be used in calculations without the need to specify
+  // its profileId. Here, we want to get all the nonDefault usage profiles in the case of a multi-meter
+  // account so those usage profiles can be included in the calculation by profileId.
+  const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
+  return existingUsageProfiles.data.results.filter(usageProfile => (usageProfile.serviceTypes === serviceType) && (usageProfile.isDefault === false))
+}
+
 export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, solarProductionProfile, genabilityAccountId) => {
   // https://www.switchsolar.io/tutorials/actuals/electricity-savings/
 
-  const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
-
-  let electricNonDefaultProfiles = existingUsageProfiles.data.results.filter(usageProfile => usageProfile.serviceTypes === 'ELECTRICITY' && usageProfile.isDefault === false)
+  let electricNonDefaultProfiles = await getExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
   electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
     return {
       keyName: 'profileId',

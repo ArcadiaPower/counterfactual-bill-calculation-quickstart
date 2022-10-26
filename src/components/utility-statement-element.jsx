@@ -59,8 +59,7 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
       </div>
       <Modal isOpen={openModal} appElement={document.getElementById('app')}>
         <div style={titleStyle}>
-          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}, Meter Id: </h3>
-
+          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}</h3>
           <button onClick={closeModal}>close</button>
         </div>
         <>
