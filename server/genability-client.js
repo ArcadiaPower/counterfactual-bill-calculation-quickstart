@@ -222,6 +222,7 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
 };
 
 const transformPropertyInputs = (propertyInputs) => {
+  // Properties are applied to the main tariff, which may affect the calculated cost of electricity.
   return propertyInputs.map(propertyInput => {
     return {
       keyName: propertyInput.id,
