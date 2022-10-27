@@ -163,7 +163,7 @@ export const createUsageProfileIntervalData = async (
     readingData: transformedIntervalData,
   };
 
-  return await genabilityApi.put(`rest/v1/profiles`, body, {
+  await genabilityApi.put(`rest/v1/profiles`, body, {
     headers: genabilityHeaders,
   });
 };
