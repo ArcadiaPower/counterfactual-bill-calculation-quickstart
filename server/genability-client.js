@@ -221,6 +221,15 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
   return response.data
 };
 
+const transformPropertyInputs = (propertyInputs) => {
+  return propertyInputs.map(propertyInput => {
+    return {
+      keyName: propertyInput.id,
+      dataValue: propertyInput.value
+    }
+  })
+}
+
 export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAccountId) => {
   let electricNonDefaultProfiles = await getExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
   electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
@@ -231,6 +240,8 @@ export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAc
     }
   })
 
+  const propertyInputs = transformPropertyInputs(arcUtilityStatement.tariff.propertyInputs)
+
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
     toDateTime: calculateServiceEndDate(arcUtilityStatement.serviceEndDate, arcUtilityStatement.serviceWindowInclusiveOfEndDate),
@@ -238,7 +249,7 @@ export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAc
     minimums: false,
     groupBy: "MONTH",
     detailLevel: "CHARGE_TYPE_AND_TOU",
-    propertyInputs: electricNonDefaultProfiles
+    propertyInputs: [...electricNonDefaultProfiles, ...propertyInputs]
   };
   const response = await genabilityApi.post(
     `rest/v1/accounts/pid/${arcUtilityStatement.utilityAccountId}/calculate/`,
@@ -272,6 +283,8 @@ export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, 
     }
   })
 
+  const propertyInputs = transformPropertyInputs(arcUtilityStatement.tariff.propertyInputs)
+
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
     toDateTime: calculateServiceEndDate(arcUtilityStatement.serviceEndDate, arcUtilityStatement.serviceWindowInclusiveOfEndDate),
@@ -285,7 +298,8 @@ export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, 
         dataValue: solarProductionProfile.results[0].profileId,
         operator: "+"
       },
-      ...electricNonDefaultProfiles
+      ...electricNonDefaultProfiles,
+      ...propertyInputs
     ]
   }
 
