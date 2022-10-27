@@ -29,16 +29,11 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
   const [openModal, setOpenModal] = useState(false)
   const [counterFactualResults, setCounterFactualResults] = useState()
   const [error, setError] = useState()
-  const [selectedMeterId, setSelectedMeterId] = useState(meters[0].id)
-
-  const handleMeterSelection = (e) => {
-    setSelectedMeterId(e.target.value)
-  }
 
   const calculate = async (arcUtilityStatementId) => {
     try {
       setOpenModal(true)
-      const result = await calculateCounterfactualBill(arcUtilityStatementId, selectedMeterId)
+      const result = await calculateCounterfactualBill(arcUtilityStatementId)
       setCounterFactualResults(result)
     } catch (error) {
       setError(error.response)
@@ -58,26 +53,30 @@ const UtilityStatementElement = ({ arcUtilityStatement, meters }) => {
         <div>
           Calculate Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id} using meter ID:
         </div>
-        <select value={selectedMeterId} onChange={handleMeterSelection}>
-          {meters.map((meter) => (
-            <option key={meter.id} value={meter.id}>{meter.id}</option>
-          ))}
-        </select>
         <button onClick={() => calculate(arcUtilityStatement.id)}>
           Calculate!
         </button>
       </div>
       <Modal isOpen={openModal} appElement={document.getElementById('app')}>
         <div style={titleStyle}>
-          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}, Meter Id: {selectedMeterId}</h3>
+          <h3>Counterfactual Bill for Arc Utility Statement {arcUtilityStatement.id}</h3>
           <button onClick={closeModal}>close</button>
         </div>
         <>
           {
-            counterFactualResults ? <div style={containerStyle}>
-              <CounterfactualResults title="Current Cost" results={counterFactualResults.currentCost}></CounterfactualResults>
-              <CounterfactualResults title="Current Cost Without Solar" results={counterFactualResults.currentCostWithoutSolar}></CounterfactualResults>
-            </div>
+            counterFactualResults ?
+              (
+                <>
+                  {
+                    counterFactualResults.metersUsedInCalculation.length &&
+                    <div>Meter IDs used in calculation: {counterFactualResults.metersUsedInCalculation.map(meter => meter.id).join(', ')}</div>
+                  }
+                  <div style={containerStyle}>
+                    <CounterfactualResults title="Current Cost" results={counterFactualResults.currentCost}></CounterfactualResults>
+                    <CounterfactualResults title="Current Cost Without Solar" results={counterFactualResults.currentCostWithoutSolar}></CounterfactualResults>
+                  </div>
+                </>
+              )
               : error ? <ErrorMessage error={error} />
                 : <p>Loading...</p>
           }
