@@ -221,15 +221,19 @@ export const createProductionProfileSolarData = async (genabilityAccountId) => {
   return response.data
 };
 
-export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAccountId) => {
-  let electricNonDefaultProfiles = await getExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
-  electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
+const transformPropertyInputs = (propertyInputs) => {
+  // Properties are applied to the main tariff, which may affect the calculated cost of electricity.
+  return propertyInputs.map(propertyInput => {
     return {
-      keyName: 'profileId',
-      dataValue: usageProfile.profileId,
-      operator: '+'
+      keyName: propertyInput.id,
+      dataValue: propertyInput.value
     }
   })
+}
+
+export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAccountId) => {
+  const electricNonDefaultProfiles = await getAndTransformExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
+  const propertyInputs = transformPropertyInputs(arcUtilityStatement.tariff.propertyInputs)
 
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
@@ -238,7 +242,7 @@ export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAc
     minimums: false,
     groupBy: "MONTH",
     detailLevel: "CHARGE_TYPE_AND_TOU",
-    propertyInputs: electricNonDefaultProfiles
+    propertyInputs: [...electricNonDefaultProfiles, ...propertyInputs]
   };
   const response = await genabilityApi.post(
     `rest/v1/accounts/pid/${arcUtilityStatement.utilityAccountId}/calculate/`,
@@ -250,27 +254,29 @@ export const calculateCurrentBillCost = async (arcUtilityStatement, genabilityAc
   return response.data
 };
 
-export const getExistingNonDefaultProfiles = async (genabilityAccountId, serviceType) => {
+export const getAndTransformExistingNonDefaultProfiles = async (genabilityAccountId, serviceType) => {
   // https://www.switchsolar.io/api-reference/account-api/usage-profile/#examples
   // The first usage profile with a serviceType of 'ELECTRICITY' will automatically be set
   // to isDefault: true, which means it will be used in calculations without the need to specify
   // its profileId. Here, we want to get all the nonDefault usage profiles in the case of a multi-meter
   // account so those usage profiles can be included in the calculation by profileId.
   const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
-  return existingUsageProfiles.data.results.filter(usageProfile => (usageProfile.serviceTypes === serviceType) && (usageProfile.isDefault === false))
-}
-
-export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, solarProductionProfile, genabilityAccountId) => {
-  // https://www.switchsolar.io/tutorials/actuals/electricity-savings/
-
-  let electricNonDefaultProfiles = await getExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
-  electricNonDefaultProfiles = electricNonDefaultProfiles.map(usageProfile => {
+  return existingUsageProfiles.data.results.filter(
+    usageProfile => (usageProfile.serviceTypes === serviceType) && (usageProfile.isDefault === false)
+  ).map(usageProfile => {
     return {
       keyName: 'profileId',
       dataValue: usageProfile.profileId,
       operator: '+'
     }
   })
+}
+
+export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, solarProductionProfile, genabilityAccountId) => {
+  // https://www.switchsolar.io/tutorials/actuals/electricity-savings/
+
+  const electricNonDefaultProfiles = await getAndTransformExistingNonDefaultProfiles(genabilityAccountId, 'ELECTRICITY')
+  const propertyInputs = transformPropertyInputs(arcUtilityStatement.tariff.propertyInputs)
 
   const body = {
     fromDateTime: arcUtilityStatement.serviceStartDate,
@@ -285,7 +291,8 @@ export const calculateCurrentBillCostWithoutSolar = async (arcUtilityStatement, 
         dataValue: solarProductionProfile.results[0].profileId,
         operator: "+"
       },
-      ...electricNonDefaultProfiles
+      ...electricNonDefaultProfiles,
+      ...propertyInputs
     ]
   }
 
