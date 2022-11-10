@@ -138,9 +138,7 @@ export const createUsageProfileIntervalData = async (
 ) => {
 
   const intervalData = await getIntervalData(
-    arcUtilityStatement.id,
-    arcUtilityStatement.utilityAccountId,
-    meterId
+    arcUtilityStatement.id
   );
 
   const transformedIntervalData = intervalData.map((interval) => {
