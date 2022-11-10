@@ -2,7 +2,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import dayjs from "dayjs";
 import { env } from "process";
-import { getIntervalData, getUtilityMeters } from "./arc-client.js";
+import { getIntervalData } from "./arc-client.js";
 import { readFile } from 'fs/promises';
 dotenv.config();
 
@@ -106,41 +106,13 @@ export const getExistingGenabilityProfiles = async (genabilityAccountId) => {
   return existingUsageProfiles;
 }
 
-export const createUsageProfiles = async (arcUtilityStatement, genabilityAccountId) => {
-  const meters = await getUtilityMeters(arcUtilityStatement.utilityAccountId)
-  if (meters.length) {
-    // If there are multiple meters associated with the statement period,
-    // we create a usage profile for each meter. All usage profiles will
-    // be used when we run calculations.
-    for (let meter of meters) {
-      await createUsageProfileIntervalData(
-        genabilityAccountId,
-        arcUtilityStatement,
-        meter.id
-      );
-    }
-  } else {
-    // If an account does not have meter-level data,
-    // we attempt to get interval data at the statement level.
-    await createUsageProfileIntervalData(
-      genabilityAccountId,
-      arcUtilityStatement,
-      null
-    );
-  }
-  return meters;
-}
-
 export const createUsageProfileIntervalData = async (
   genabilityAccountId,
   arcUtilityStatement,
-  meterId
 ) => {
 
   const intervalData = await getIntervalData(
-    arcUtilityStatement.id,
-    arcUtilityStatement.utilityAccountId,
-    meterId
+    arcUtilityStatement.id
   );
 
   const transformedIntervalData = intervalData.map((interval) => {
@@ -154,9 +126,9 @@ export const createUsageProfileIntervalData = async (
 
   const body = {
     accountId: genabilityAccountId,
-    providerProfileId: `ELECTRICITY_USAGE_UA_${arcUtilityStatement.utilityAccountId}${meterId ? "_METER_" + meterId : '_WITHOUT_METER'}`,
-    profileName: `Interval Data for ${meterId ? 'meter ' + meterId : 'utility_account ' + arcUtilityStatement.utilityAccountId}`,
-    description: `Usage Profile using Interval Data for Utility Account ${arcUtilityStatement.utilityAccountId}${meterId ? " - meter: " + meterId : ""}`,
+    providerProfileId: `ELECTRICITY_USAGE_UA_${arcUtilityStatement.utilityAccountId}`,
+    profileName: `Interval Data for ${'utility_account ' + arcUtilityStatement.utilityAccountId}`,
+    description: `Usage Profile using Interval Data for Utility Account ${arcUtilityStatement.utilityAccountId}`,
     isDefault: false,
     serviceTypes: "ELECTRICITY",
     sourceId: "ReadingEntry",
@@ -254,8 +226,8 @@ export const getExistingNonDefaultProfiles = async (genabilityAccountId, service
   // https://www.switchsolar.io/api-reference/account-api/usage-profile/#examples
   // The first usage profile with a serviceType of 'ELECTRICITY' will automatically be set
   // to isDefault: true, which means it will be used in calculations without the need to specify
-  // its profileId. Here, we want to get all the nonDefault usage profiles in the case of a multi-meter
-  // account so those usage profiles can be included in the calculation by profileId.
+  // its profileId. Here, we want to get any nonDefault usage profiles that may be associated with the account
+  // so those usage profiles can be included in the calculation by profileId.
   const existingUsageProfiles = await getExistingGenabilityProfiles(genabilityAccountId);
   return existingUsageProfiles.data.results.filter(usageProfile => (usageProfile.serviceTypes === serviceType) && (usageProfile.isDefault === false))
 }
