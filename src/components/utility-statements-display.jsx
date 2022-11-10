@@ -3,7 +3,7 @@ import { fetchUtilityStatements } from "../session.js";
 import UtilityStatementElement from "./utility-statement-element.jsx";
 import { string } from 'prop-types';
 
-const UtilityStatementsDisplay = ({arcUtilityAccountId, setError, error, meters}) => {
+const UtilityStatementsDisplay = ({arcUtilityAccountId, setError, error}) => {
   const [arcUtilityStatements, setArcUtilityStatements] = useState()
 
   const setUtilityStatements = async () => {
@@ -30,7 +30,7 @@ const UtilityStatementsDisplay = ({arcUtilityAccountId, setError, error, meters}
       {arcUtilityStatements &&
         arcUtilityStatements.data.map(utilityStatement => {
           return(
-           <UtilityStatementElement key={utilityStatement.id} arcUtilityStatement={utilityStatement} meters={meters}/>
+           <UtilityStatementElement key={utilityStatement.id} arcUtilityStatement={utilityStatement} />
           )
         })
       }

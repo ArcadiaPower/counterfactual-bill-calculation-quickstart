@@ -52,21 +52,6 @@ export const getUtilityAccount = async (utilityAccountId) => {
   }
 };
 
-export const getUtilityMeters = async (arcUtilityAccountId) => {
-  const accessToken = await getArcAccessToken();
-  try {
-    const response = await arcadiaApi.get(
-      `/utility_meters?utility_account_id=${arcUtilityAccountId}&service_types=electric`,
-      {
-        headers: setArcHeaders(accessToken),
-      }
-    );
-    return response.data.data;
-  } catch (error) {
-    throw error.response
-  }
-}
-
 export const getUtilityStatements = async (utilityAccountId) => {
   const accessToken = await getArcAccessToken();
   const response = await arcadiaApi.get(

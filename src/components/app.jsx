@@ -19,7 +19,7 @@ const App = () => {
         error={error}
       />
       { genabilityAccount &&
-        <UtilityStatementsDisplay arcUtilityAccountId={arcUtilityAccountId} setError={setError} error={error} meters={genabilityAccount.utilityMeters}/>
+        <UtilityStatementsDisplay arcUtilityAccountId={arcUtilityAccountId} setError={setError} error={error} />
       }
       {
         error &&
